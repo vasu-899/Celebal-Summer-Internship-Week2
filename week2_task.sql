@@ -176,3 +176,52 @@ UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 206;
 UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 208;
 
 COMMIT;
+
+USE shopease;
+SELECT p.product_name, SUM(oi.quantity) AS total_sold
+FROM order_items oi
+JOIN products p ON oi.product_id = p.product_id
+GROUP BY p.product_name
+ORDER BY total_sold DESC
+LIMIT 3;
+
+-- Top 3 categories by revenue
+SELECT p.category, SUM(o.total_amount) AS total_revenue
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+JOIN products p ON oi.product_id = p.product_id
+GROUP BY p.category
+ORDER BY total_revenue DESC
+LIMIT 3;
+
+-- Monthly trends
+SELECT MONTH(order_date) AS month,
+COUNT(*) AS total_orders,
+SUM(total_amount) AS monthly_revenue
+FROM orders
+GROUP BY MONTH(order_date)
+ORDER BY month;
+
+-- Top 3 customers by spending
+SELECT c.first_name, c.last_name,
+SUM(o.total_amount) AS total_spent
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id
+ORDER BY total_spent DESC
+LIMIT 3;
+
+-- Duplicate check
+SELECT customer_id, COUNT(*) AS order_count
+FROM orders
+GROUP BY customer_id
+HAVING COUNT(*) > 1;
+
+-- Validation - row counts
+SELECT 'customers' AS table_name, COUNT(*) AS row_count FROM customers
+UNION ALL
+SELECT 'products', COUNT(*) FROM products
+UNION ALL
+SELECT 'orders', COUNT(*) FROM orders
+UNION ALL
+SELECT 'order_items', COUNT(*) FROM order_items;
